@@ -53,10 +53,10 @@
         DISK_INNER_RADIUS: { value: DISK_INNER_RADIUS },
         DISK_OUTER_RADIUS: { value: DISK_OUTER_RADIUS },
         DISK_THICKNESS: { value: DISK_THICKNESS },
-        u_skybox: { value: skyboxTexture } // 将加载好的纹理传递给着色器
+        u_skybox: { value: skyboxTexture } 
     };
 
-    // --- 创建平面和着色器材质 ---
+   
     const geometry = new THREE.PlaneGeometry(2, 2);
     const material = new THREE.ShaderMaterial({
         uniforms: uniforms,
@@ -76,7 +76,6 @@
             uniform float DISK_OUTER_RADIUS;
             uniform float DISK_THICKNESS;
             
-            // 关键修改 #2: 声明天空盒 uniform
             uniform samplerCube u_skybox;
 
             #define Rs (2.0 * M)
@@ -85,10 +84,8 @@
             const int MAX_STEPS = 450;
             const float DT = 0.08;
 
-            // 关键修改 #3: 恢复 get_sky_color 的功能
+            
             vec3 get_sky_color(vec3 dir) {
-                // WebGL的textureCube和桌面OpenGL的texture函数用法一致
-                // 坐标系可能需要微调，但通常(x, y, -z)是兼容的
                 return textureCube(u_skybox, vec3(dir.x, dir.y, -dir.z)).rgb;
             }
             
@@ -202,7 +199,6 @@
     const plane = new THREE.Mesh(geometry, material);
     scene.add(plane);
 
-    // --- 动画循环 (保持不变) ---
     function animate(time) {
         requestAnimationFrame(animate);
         uniforms.u_time.value = time / 1000.0;
@@ -222,7 +218,7 @@
     }
     animate(0);
 
-    // --- 事件监听 (保持不变) ---
+
     window.addEventListener('resize', () => {
         renderer.setSize(window.innerWidth, window.innerHeight);
         uniforms.u_resolution.value.x = window.innerWidth;
@@ -245,5 +241,6 @@
 </script>
 </body>
 </html>```
+
 
 
