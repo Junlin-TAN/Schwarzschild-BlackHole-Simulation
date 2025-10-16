@@ -1,9 +1,10 @@
 # Schwarzschild-BlackHole-Simulation 施瓦西黑洞模拟
 
-这是一个使用 WebGL 和 Three.js 实现的、可在浏览器中实时交互的黑洞渲染模拟器...
+本项目使用GLSL编写着色器，OpenGL渲染。
 ![黑洞实时渲染效果](black_hole_simulation_compressed.gif)
 ![黑洞实时渲染效果](Cover.png)
-包含.py版本以及html版本。
+
+本项目包含.py版本以及html版本。
 - **实时光线追踪**：在着色器中实时计算光线在引力场中的弯曲路径。
 - **物理视觉效果**：
     - **引力透镜**：背景星空被黑洞引力扭曲。
@@ -13,3 +14,4 @@
 
 **[参考项目](https://github.com/rossning92/Blackhole)**
    本项目参考了这个项目的着色器框架以及背景天球构造，制作了一个简化版本的黑洞模拟
+
