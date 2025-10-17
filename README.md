@@ -76,7 +76,7 @@ vec3 dr = -1.5 * Rs * ro / dot(ro, ro) / dot(ro, ro);
 rd += dr * dt; // 'rd' is the ray direction vector v
 ```
 
-This gravitational relationship, proportional to `$$ 1/|\vec{p}|^3 $$` (since `$$ \Delta \vec{v} \propto \vec{p}/|\vec{p}|^4 $$`), is a modification of Newtonian gravity (`$$ 1/|\vec{p}|^2 $$`) and effectively models the behavior of photons in a strong gravitational field, including the formation of a photon sphere.
+This gravitational relationship, proportional to $1/|\vec{p}|^3$ (since $\Delta \vec{v} \propto \vec{p}/|\vec{p}|^4$), is a modification of Newtonian gravity ($1/|\vec{p}|^2$) and effectively models the behavior of photons in a strong gravitational field, including the formation of a photon sphere.
 
 ### 2. Numerical Integration: The Euler Method
 
@@ -101,7 +101,7 @@ The variation in the color and brightness of the accretion disk is caused by a c
 A simplified formula is used in the shader to model this combined effect, calculating a `doppler` factor to adjust the color's brightness:
 
 $$
-\text{dopplerFactor} = \frac{1}{1 + v_{\text{disk}} \cdot v_{\text{orbit}} \cdot \vec{v}_{\text{ray}} \cdot \hat{x}}```
+\text{dopplerFactor} = \frac{1}{1 + v_{\text{disk}} \cdot v_{\text{orbit}} \cdot \vec{v}_{\text{ray}} \cdot \hat{x}}
 $$
 Where:
 
@@ -153,6 +153,7 @@ This project is a learning exercise and a tribute to the incredible work of **@r
 ## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
+
 
 
 
