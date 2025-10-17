@@ -3,9 +3,9 @@
 This project provides a real-time, interactive simulation of a Schwarzschild black hole, demonstrating key gravitational phenomena such as gravitational lensing, the accretion disk, and the Doppler effect. The simulation is implemented in two versions: a desktop application using **Python/PyOpenGL** and a web-based version using **JavaScript/WebGL**.
 
 The core rendering logic and shader framework are heavily inspired by and adapted from the excellent C++/OpenGL project [Blackhole by rossning92](https://github.com/rossning92/Blackhole). This project serves as a re-implementation and simplification, focusing on porting the complex shader logic to more accessible platforms like Python and WebGL.
-![[Simulation Demo](black_hole_simulation_compressed.gif)
-![[Simulation Demo](Cover.png)
-![[Simulation Demo](Cover2.png)
+![Simulation Demo](black_hole_simulation_compressed.gif)
+![Simulation Demo](Cover.png)
+![Simulation Demo](Cover2.png)
 
 ## Key Features
 
@@ -71,3 +71,4 @@ This project is a learning exercise and a tribute to the incredible work of **@r
 ## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
+
