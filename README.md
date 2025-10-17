@@ -100,9 +100,9 @@ The variation in the color and brightness of the accretion disk is caused by a c
 
 A simplified formula is used in the shader to model this combined effect, calculating a `doppler` factor to adjust the color's brightness:
 
-
+$$
 \text{dopplerFactor} = \frac{1}{1 + v_{\text{disk}} \cdot v_{\text{orbit}} \cdot \vec{v}_{\text{ray}} \cdot \hat{x}}```
-
+$$
 Where:
 
 -   $v_{\text{orbit}}$ is the orbital velocity of the disk at a given point.
@@ -153,6 +153,7 @@ This project is a learning exercise and a tribute to the incredible work of **@r
 ## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
+
 
 
 
