@@ -100,13 +100,13 @@ The variation in the color and brightness of the accretion disk is caused by a c
 
 A simplified formula is used in the shader to model this combined effect, calculating a `doppler` factor to adjust the color's brightness:
 
-$$
-\text{dopplerFactor} = \frac{1}{1 + v_{disk} \cdot v_{orbit} \cdot \vec{v}_{ray} \cdot \hat{x}}
-$$
+
+\text{dopplerFactor} = \frac{1}{1 + v_{\text{disk}} \cdot v_{\text{orbit}} \cdot \vec{v}_{\text{ray}} \cdot \hat{x}}```
 
 Where:
-- $ v_{orbit} $ is the orbital velocity of the disk at a given point.
-- $ \vec{v}_{ray} \cdot \hat{x} $ is the projection of the final ray direction onto the disk's direction of motion (simplified here as the x-axis).
+
+-   $v_{\text{orbit}}$ is the orbital velocity of the disk at a given point.
+-   $\vec{v}_{\text{ray}} \cdot \hat{x}$ is the projection of the final ray direction onto the disk's direction of motion (simplified here as the x-axis).
 
 This factor is multiplied by the color sampled from the accretion disk texture, creating the visual effect where the side moving towards us is brighter (blueshifted) and the side moving away is dimmer (redshifted).
 
@@ -153,6 +153,7 @@ This project is a learning exercise and a tribute to the incredible work of **@r
 ## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
+
 
 
 
