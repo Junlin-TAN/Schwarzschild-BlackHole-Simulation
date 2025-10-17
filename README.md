@@ -61,10 +61,11 @@ $$
 $$
 
 Where:
-- **$$ \Delta \vec{v} $$** is the change in the light ray's velocity (direction vector) over a small time step `$$ \Delta t $$`.
-- **$$ R_s $$** is the Schwarzschild Radius, defining the size of the event horizon.
-- **$$ \vec{p} $$** is the photon's current position vector relative to the black hole's center.
-- **$$ |\vec{p}| $$** is the distance from the photon to the center of the black hole.
+
+-   $\Delta \vec{v}$ is the change in the light ray's velocity (direction vector) over a small time step $\Delta t$.
+-   $R_s$ is the Schwarzschild Radius, defining the size of the event horizon.
+-   $\vec{p}$ is the photon's current position vector relative to the black hole's center.
+-   $|\vec{p}|$ is the distance from the photon to the center of the black hole.
 
 This formula is implemented in the GLSL shader as follows:
 
@@ -104,8 +105,8 @@ $$
 $$
 
 Where:
-- $$ v_{orbit} $$ is the orbital velocity of the disk at a given point.
-- $$ \vec{v}_{ray} \cdot \hat{x} $$ is the projection of the final ray direction onto the disk's direction of motion (simplified here as the x-axis).
+- $ v_{orbit} $ is the orbital velocity of the disk at a given point.
+- $ \vec{v}_{ray} \cdot \hat{x} $ is the projection of the final ray direction onto the disk's direction of motion (simplified here as the x-axis).
 
 This factor is multiplied by the color sampled from the accretion disk texture, creating the visual effect where the side moving towards us is brighter (blueshifted) and the side moving away is dimmer (redshifted).
 
@@ -152,6 +153,7 @@ This project is a learning exercise and a tribute to the incredible work of **@r
 ## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
+
 
 
 
