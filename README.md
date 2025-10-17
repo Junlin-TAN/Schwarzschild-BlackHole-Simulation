@@ -124,6 +124,14 @@ $$
 
 The resulting radius `r` and angle `θ` are then used as the `(u, v)` coordinates to sample the correct color from the disk texture.
 
+### A Note on the Physics Approximation
+
+It is worth noting that the formula used in this project, which results in an effective force proportional to $1/r^3$, is one of several ways to approximate the geodesic equation for photons.
+
+Another excellent and insightful approach is detailed in the project **[Starless](https://rantonels.github.io/starless/)** by Randel S. Nelson. That simulation cleverly constructs a different pseudo-Newtonian force, proportional to $1/r^5$, which is specifically designed to produce the correct relativistic orbits when integrated.
+
+Both methods are powerful approximations that achieve a visually accurate simulation of gravitational lensing, demonstrating that different mathematical paths can lead to the same physical phenomenon.
+
 ---
 
 ## Implementations
@@ -154,6 +162,7 @@ This project is a learning exercise and a tribute to the incredible work of **@r
 ## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
+
 
 
 
