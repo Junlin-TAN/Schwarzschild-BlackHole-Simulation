@@ -104,8 +104,8 @@ $$
 $$
 
 Where:
-- **$$ v_{orbit} $$** is the orbital velocity of the disk at a given point.
-- **$$ \vec{v}_{ray} \cdot \hat{x} $$** is the projection of the final ray direction onto the disk's direction of motion (simplified here as the x-axis).
+- $$ v_{orbit} $$ is the orbital velocity of the disk at a given point.
+- $$ \vec{v}_{ray} \cdot \hat{x} $$ is the projection of the final ray direction onto the disk's direction of motion (simplified here as the x-axis).
 
 This factor is multiplied by the color sampled from the accretion disk texture, creating the visual effect where the side moving towards us is brighter (blueshifted) and the side moving away is dimmer (redshifted).
 
@@ -152,6 +152,7 @@ This project is a learning exercise and a tribute to the incredible work of **@r
 ## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
+
 
 
 
