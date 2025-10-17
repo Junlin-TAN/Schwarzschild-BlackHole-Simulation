@@ -103,6 +103,7 @@ A simplified formula is used in the shader to model this combined effect, calcul
 $$
 \text{dopplerFactor} = \frac{1}{1 + v_{disk} \cdot v_{orbit} \cdot \vec{v}_{ray} \cdot \hat{x}}
 $$
+
 Where:
 
 -   $v_{\text{orbit}}$ is the orbital velocity of the disk at a given point.
@@ -153,6 +154,7 @@ This project is a learning exercise and a tribute to the incredible work of **@r
 ## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
+
 
 
 
