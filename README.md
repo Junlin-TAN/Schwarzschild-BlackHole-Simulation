@@ -4,7 +4,7 @@ This project provides a real-time, interactive simulation of a Schwarzschild bla
 
 The core rendering logic and shader framework are heavily inspired by and adapted from the excellent C++/OpenGL project [Blackhole by rossning92](https://github.com/rossning92/Blackhole). This project serves as a re-implementation and simplification, focusing on porting the complex shader logic to more accessible platforms like Python and WebGL.A key goal of this re-implementation is to make this complex simulation more accessible and significantly easier to run. While the original C++ project offers high performance, it requires a specific compilation toolchain (like CMake and a C++ compiler). In contrast, these Python and WebGL versions are platform-independent and require no compilation, effectively lowering the system and software requirements for anyone wishing to experience or experiment with the simulation.
 ![Simulation Demo](black_hole_simulation_compressed.gif)
-The gravitational lensing:
+The gravitational lensing and Doppler effect：
 ![Simulation Demo](Cover.png)
 ![Simulation Demo](Cover2.png)
 See Einstein ring:
@@ -162,6 +162,7 @@ This project is a learning exercise and a tribute to the incredible work of **@r
 ## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
+
 
 
 
