@@ -46,6 +46,82 @@ This simulation doesn't use traditional 3D models. Instead, it employs a **scree
 
 This entire process is repeated for every single pixel on the screen, for every frame, resulting in the final, fully rendered image.
 
+## Core Principles & Mathematical Formulas
+
+This simulation is not based on traditional 3D rendering but on the physical phenomena described by **General Relativity**, which are approximated using **numerical methods** within the fragment shader. Below are the key mathematical and physical principles at play.
+
+### 1. Approximation of Light Deflection
+
+In General Relativity, light travels along "geodesics" through spacetime. For a Schwarzschild black hole, this path is curved. Calculating this path precisely requires solving complex geodesic equations. To achieve real-time performance on a GPU, this project uses a highly effective and visually plausible **approximation formula** that simulates the change in a light ray's direction due to gravity.
+
+At each step of the ray marching process, we update the ray's velocity (direction) using the following formula:
+
+$$
+\Delta \vec{v} = - \frac{3}{2} R_s \frac{\vec{p}}{|\vec{p}|^4} \Delta t
+$$
+
+Where:
+- **$$ \Delta \vec{v} $$** is the change in the light ray's velocity (direction vector) over a small time step `$$ \Delta t $$`.
+- **$$ R_s $$** is the Schwarzschild Radius, defining the size of the event horizon.
+- **$$ \vec{p} $$** is the photon's current position vector relative to the black hole's center.
+- **$$ |\vec{p}| $$** is the distance from the photon to the center of the black hole.
+
+This formula is implemented in the GLSL shader as follows:
+
+```glsl
+// 'ro' is the ray position vector p, 'Rs' is the Schwarzschild Radius.
+// dot(ro, ro) calculates the squared distance |p|^2 for efficiency.
+vec3 dr = -1.5 * Rs * ro / dot(ro, ro) / dot(ro, ro);
+rd += dr * dt; // 'rd' is the ray direction vector v
+```
+
+This gravitational relationship, proportional to `$$ 1/|\vec{p}|^3 $$` (since `$$ \Delta \vec{v} \propto \vec{p}/|\vec{p}|^4 $$`), is a modification of Newtonian gravity (`$$ 1/|\vec{p}|^2 $$`) and effectively models the behavior of photons in a strong gravitational field, including the formation of a photon sphere.
+
+### 2. Numerical Integration: The Euler Method
+
+We use the simplest numerical integration technique—the **Euler Method**—to update the ray's position step-by-step based on the change in velocity calculated above:
+
+$$
+\vec{v}_{i+1} = \vec{v}_i + \Delta \vec{v}
+$$
+$$
+\vec{p}_{i+1} = \vec{p}_i + \vec{v}_{i+1} \cdot \Delta t
+$$
+
+This is precisely what occurs inside the `for` loop. By iterating hundreds of times, we construct a smooth, curved path for the light ray.
+
+### 3. Doppler Effect & Relativistic Beaming in the Accretion Disk
+
+The variation in the color and brightness of the accretion disk is caused by a combination of the **Doppler Effect** and **Relativistic Beaming**.
+
+- **Doppler Effect**: When matter moves towards us, the frequency of the light we receive increases (blueshift), making it appear brighter. When it moves away, the frequency decreases (redshift), making it appear dimmer.
+- **Relativistic Beaming**: At near-light speeds, light emitted by an object becomes highly concentrated in its direction of motion. This makes the matter moving towards us appear significantly brighter.
+
+A simplified formula is used in the shader to model this combined effect, calculating a `doppler` factor to adjust the color's brightness:
+
+$$
+\text{dopplerFactor} = \frac{1}{1 + v_{disk} \cdot v_{orbit} \cdot \vec{v}_{ray} \cdot \hat{x}}
+$$
+
+Where:
+- **$$ v_{orbit} $$** is the orbital velocity of the disk at a given point.
+- **$$ \vec{v}_{ray} \cdot \hat{x} $$** is the projection of the final ray direction onto the disk's direction of motion (simplified here as the x-axis).
+
+This factor is multiplied by the color sampled from the accretion disk texture, creating the visual effect where the side moving towards us is brighter (blueshifted) and the side moving away is dimmer (redshifted).
+
+### 4. Accretion Disk Texture Mapping
+
+To map the 3D collision point of the light ray onto the 2D accretion disk texture, we use a **Cartesian to Polar coordinate conversion**.
+
+$$
+r = \sqrt{p_x^2 + p_z^2}
+$$
+$$
+\theta = \text{atan2}(p_x, p_z)
+$$
+
+The resulting radius `r` and angle `θ` are then used as the `(u, v)` coordinates to sample the correct color from the disk texture.
+
 ---
 
 ## Implementations
@@ -76,5 +152,6 @@ This project is a learning exercise and a tribute to the incredible work of **@r
 ## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
+
 
 
