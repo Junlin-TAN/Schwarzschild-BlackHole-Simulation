@@ -12,7 +12,7 @@ WINDOW_SIZE = (1280, 720)
 BLACK_HOLE_MASS = 0.5
 Rs = 2.0 * BLACK_HOLE_MASS
 
-DISK_INNER_RADIUS = 1.500001 * Rs
+DISK_INNER_RADIUS = 3 * Rs
 DISK_OUTER_RADIUS = 10.0 * Rs
 DISK_THICKNESS = 0.3
 
@@ -108,6 +108,7 @@ class BlackHole3D:
             uniform vec3 u_camera_right;
             uniform vec3 u_camera_up;
             uniform float u_time;
+            uniform float u_skybox_rotation; 
 
             #define Rs (2.0 * M)
             const float PI = 3.1415926535;
@@ -115,7 +116,17 @@ class BlackHole3D:
             const int MAX_STEPS = 450;
             const float DT = 0.08;
 
-            vec3 get_sky_color(vec3 dir) { return texture(u_skybox, vec3(dir.x, dir.y, -dir.z)).rgb; }
+            
+            vec3 get_sky_color(vec3 dir) {
+                float angle = u_skybox_rotation;
+                
+                mat2 rot = mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
+                vec3 rotated_dir = dir;
+                
+                rotated_dir.xz = rot * rotated_dir.xz;
+                return texture(u_skybox, vec3(rotated_dir.x, rotated_dir.y, -rotated_dir.z)).rgb;
+            }
+
             float random(vec2 st) { return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123); }
             float noise(vec2 st) {
                 vec2 i = floor(st); vec2 f = fract(st);
@@ -257,7 +268,11 @@ class BlackHole3D:
             
             cam_up = np.cross(cam_right, cam_fwd)
             
-            self.program['u_time'].value = pygame.time.get_ticks() / 1000.0
+            time_sec = pygame.time.get_ticks() / 1000.0
+            self.program['u_time'].value = time_sec
+            
+            self.program['u_skybox_rotation'].value = time_sec / 20.0
+            
             self.program['u_camera_pos'].value = tuple(camera_pos)
             self.program['u_camera_fwd'].value = tuple(cam_fwd)
             self.program['u_camera_right'].value = tuple(cam_right)
