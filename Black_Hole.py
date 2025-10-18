@@ -9,7 +9,7 @@ import os
 WINDOW_SIZE = (1280, 720)
 
 
-BLACK_HOLE_MASS = 0.5
+BLACK_HOLE_MASS = 0.6
 Rs = 2.0 * BLACK_HOLE_MASS
 
 DISK_INNER_RADIUS = 3 * Rs
@@ -40,6 +40,9 @@ class BlackHole3D:
         self.pitch = math.radians(10)
         pygame.mouse.set_visible(False)
         pygame.event.set_grab(True)
+
+        
+        self.accretion_disk_enabled = True
 
         try:
             script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -109,6 +112,7 @@ class BlackHole3D:
             uniform vec3 u_camera_up;
             uniform float u_time;
             uniform float u_skybox_rotation; 
+            uniform bool u_accretion_disk_enabled; 
 
             #define Rs (2.0 * M)
             const float PI = 3.1415926535;
@@ -208,15 +212,17 @@ class BlackHole3D:
                     if (r < Rs) { hit_horizon = true; break; }
                     if (r > BOUNDARY) { break; }
 
-                    float r_disk = length(ray_pos.xz);
-                    if (abs(ray_pos.y) < DISK_THICKNESS && r_disk >= DISK_INNER_RADIUS && r_disk < DISK_OUTER_RADIUS) {
-                        vec3 step_color = get_disk_color(ray_pos, normalize(velocity)) * DT * 10.0;
-                        accumulated_light += step_color * transparency;
-                        
-                        float opacity = clamp(dot(step_color, vec3(0.333)) * 0.1, 0.0, 1.0);
-                        transparency *= (1.0 - opacity);
+                    if (u_accretion_disk_enabled) { 
+                        float r_disk = length(ray_pos.xz);
+                        if (abs(ray_pos.y) < DISK_THICKNESS && r_disk >= DISK_INNER_RADIUS && r_disk < DISK_OUTER_RADIUS) {
+                            vec3 step_color = get_disk_color(ray_pos, normalize(velocity)) * DT * 10.0;
+                            accumulated_light += step_color * transparency;
+                            
+                            float opacity = clamp(dot(step_color, vec3(0.333)) * 0.1, 0.0, 1.0);
+                            transparency *= (1.0 - opacity);
 
-                        if (transparency < 0.01) { break; }
+                            if (transparency < 0.01) { break; }
+                        }
                     }
                     
                     velocity += DT * get_acceleration(ray_pos);
@@ -247,6 +253,11 @@ class BlackHole3D:
                 if event.type == pygame.MOUSEWHEEL:
                     self.distance -= event.y * 0.5
                     self.distance = max(2.0 * BLACK_HOLE_MASS * 2.5, min(self.distance, 50.0))
+                
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        self.accretion_disk_enabled = not self.accretion_disk_enabled
+
             if pygame.mouse.get_pressed()[0]:
                 self.yaw += mouse_dx * 0.005
                 self.pitch -= mouse_dy * 0.005
@@ -278,6 +289,9 @@ class BlackHole3D:
             self.program['u_camera_right'].value = tuple(cam_right)
             self.program['u_camera_up'].value = tuple(cam_up)
             
+           
+            self.program['u_accretion_disk_enabled'].value = self.accretion_disk_enabled
+
             self.ctx.clear(0.0, 0.0, 0.0)
             self.vao.render(moderngl.TRIANGLE_STRIP)
             pygame.display.flip()
