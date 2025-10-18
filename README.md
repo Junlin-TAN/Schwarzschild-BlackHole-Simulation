@@ -1,177 +1,198 @@
-# Schwarzschild-BlackHole-Simulation 施瓦西黑洞模拟
 
-This project provides a real-time, interactive simulation of a Schwarzschild black hole, demonstrating key gravitational phenomena such as gravitational lensing, the accretion disk, and the Doppler effect. The simulation is implemented in two versions: a desktop application using **Python/PyOpenGL** and a web-based version using **JavaScript/WebGL**.
+# Interactive Black Hole Simulation: Schwarzschild & Kerr Black Hole
 
-The core rendering logic and shader framework are heavily inspired by and adapted from the excellent C++/OpenGL project [Blackhole by rossning92](https://github.com/rossning92/Blackhole). This project serves as a re-implementation and simplification, focusing on porting the complex shader logic to more accessible platforms like Python and WebGL.A key goal of this re-implementation is to make this complex simulation more accessible and significantly easier to run. While the original C++ project offers high performance, it requires a specific compilation toolchain (like CMake and a C++ compiler). In contrast, these Python and WebGL versions are platform-independent and require no compilation, effectively lowering the system and software requirements for anyone wishing to experience or experiment with the simulation.
-![Simulation Demo](black_hole_simulation_compressed.gif)
-The gravitational lensing and Doppler effect：
-![Simulation Demo](Cover.png)
-![Simulation Demo](Cover2.png)
-See Einstein ring:
-![Simulation Demo](Cover3.png)
-The view from north pole:
-![Simulation Demo](Cover4.png)
+![Kerr Black Hole Demo](gif/blackhole_recording0)
+
+This project provides a real-time, interactive simulation of both a static **Schwarzschild black hole** and a rotating **Kerr black hole**. It demonstrates key phenomena predicted by General Relativity, such as gravitational lensing, the accretion disk, the relativistic Doppler effect, and the incredible **frame-dragging** effect of a spinning black hole.
+
+The core rendering logic and shader framework were initially inspired by the excellent C++/OpenGL project [Blackhole by rossning92](https://github.com/rossning92/Blackhole). However, this project has since evolved into a complete, physically-robust implementation featuring a switchable physics core that allows for the direct comparison between static and rotating black holes.
+
+A key goal of this project is to make this complex simulation more accessible and significantly easier to run. The Python version is platform-independent and requires no compilation, effectively lowering the barrier for anyone wishing to experience or experiment with these fascinating cosmic objects.
+
+### Kerr Black Hole (Rotating) - The Final Result!
+![Kerr Black Hole Demo](gif/blackhole_recording1)
+![Kerr Black Hole Demo](gif/blackhole_recording2)
+![Kerr Black Hole Demo](gif/blackhole_recording3)
+![Kerr Black Hole Demo](gif/blackhole_recording4)
+![Kerr Black Hole Demo](gif/blackhole_recording5)
+![Kerr Black Hole Demo](gif/blackhole_recording6)
+![Kerr Black Hole Demo](gif/blackhole_recording7)
+![Kerr Black Hole Demo](gif/blackhole_recording8)
 
 ## Key Features
 
-- **Gravitational Lensing**: Simulates the bending of light paths around a massive object, causing the background starfield to appear distorted.
-- **Accretion Disk**: A glowing, rotating disk of matter orbiting the black hole.
-- **Doppler Effect (Relativistic Beaming)**: The side of the accretion disk moving towards the observer appears brighter and blue-shifted, while the side moving away appears dimmer and red-shifted.
-- **Event Horizon**: The "point of no return," rendered as a perfect black sphere where no light can escape.
-- **Photon Sphere**: At 1.5 times the Schwarzschild radius, light can orbit the black hole. This contributes to the complex visual effects near the event horizon.
-- **Real-time and Interactive**: The simulation runs in real-time, allowing for future extensions like camera movement.
-- **Interation**: You can press SPACE to turn on/off the accretion disk.
+-   **Dual Physics Cores**: Seamlessly switch between a **Schwarzschild (static)** and a **Kerr (rotating)** black hole simulation with the press of a button.
+-   **Frame-Dragging (Lense-Thirring Effect)**: Witness the mind-bending "spacetime vortex" around the Kerr black hole, which drags and twists the accretion disk and background starlight from any viewing angle.
+-   **Extreme Relativistic Beaming**: The side of the accretion disk moving towards the observer becomes intensely bright, while the side moving away fades into darkness, accurately modeled using the orbital velocities of a Kerr spacetime.
+-   **Gravitational Lensing**: Simulates the bending of light paths, causing the background starfield to appear distorted and creating multiple images of the accretion disk (e.g., the "light arch" over the top).
+-   **Deformed Event Horizon Shadow**: Observe how the black hole's shadow deforms from a perfect circle (Schwarzschild) to a "D" shape (Kerr) due to frame-dragging.
+-   **Physically-Accurate Accretion Disk**: The disk's inner radius and orbital velocities are correctly modeled based on the black hole's spin, respecting the **Innermost Stable Circular Orbit (ISCO)**.
+-   **Real-time and Interactive**: The simulation is fully interactive, allowing you to move the camera, and toggle visual components on the fly.
+
+## Interaction Guide 
+
+-   **Mouse**: Click and drag to rotate the camera around the black hole.
+-   **Mouse Wheel**: Zoom in and out.
+-   **`SPACE` Key**: Toggle the accretion disk on/off.
+-   **`S` Key**: Switch between the Schwarzschild (static) and Kerr (rotating) physics models.
+-   **`P` Key**: Toggle the manually-drawn photon sphere effect (only for the Schwarzschild model).
+
 ## How It Works: The Rendering Pipeline
 
-This simulation doesn't use traditional 3D models. Instead, it employs a **screen-space ray marching** technique executed entirely on the GPU via a fragment shader. Here's a breakdown of the process for each pixel on the screen:
+This simulation uses a **screen-space ray marching** technique executed entirely on the GPU via a fragment shader.
 
-1.  **Backward Ray Tracing**: For every pixel, a light ray is cast *from* the camera *into* the scene. This is more efficient than tracing rays from light sources.
+1.  **Backward Ray Tracing**: For each pixel, a light ray is cast *from* the camera *into* the scene.
 
-2.  **Numerical Integration**: The path of the light ray is not a straight line due to the black hole's gravity. We simulate its curved path using **Euler integration**. In a loop, we repeatedly update the ray's position and direction based on a simplified formula for gravitational attraction:
+2.  **Numerical Integration (4th Order Runge-Kutta)**: The path of the light ray is curved by gravity. We simulate this path with high precision using the **4th Order Runge-Kutta (RK4) method**. In a loop, we repeatedly update the ray's position and velocity based on a unified acceleration formula.
 
-    ```glsl
-    // This formula calculates the change in the ray's velocity (direction)
-    // based on its proximity to the black hole.
-    vec3 dr = -1.5 * Rs * ro / dot(ro, ro) / dot(ro, ro);
+3.  **Collision Detection & Color Determination**: During the ray marching loop:
+    -   **Fell into Event Horizon**: If the ray's distance is less than the horizon radius (which differs for Schwarzschild and Kerr), the pixel is colored **black**.
+    -   **Hit the Accretion Disk**: If the ray intersects the `y=0` plane, we calculate the color based on a noise texture and the physically-correct Doppler and gravitational redshift effects.
+    -   **Escaped to Space**: If the ray travels far enough, the pixel is colored by sampling a background skybox texture.
 
-    // Update velocity and position over a small time step 'dt'
-    rd += dr * dt; // rd is the ray direction
-    ro += rd * dt; // ro is the ray origin/position
-    ```
+## Core Principles & Mathematical Formulas 
 
-3.  **Collision Detection & Color Determination**: During the ray marching loop, we check for several conditions:
-    - **Fell into Event Horizon**: If the ray's distance to the center is less than the Schwarzschild Radius (`Rs`), it has been captured. The pixel is colored **black**.
-    - **Hit the Accretion Disk**: If the ray intersects the `y=0` plane within the disk's radius, we calculate the color based on a texture lookup. The previously mentioned Doppler effect is applied here to modify the color's brightness and hue.
-    - **Escaped to Space**: If the ray travels far enough without hitting anything, it escapes the black hole's gravity. The pixel is colored by sampling a background skybox texture using the ray's final direction vector.
+This simulation is based on the physical phenomena described by **General Relativity**, which are approximated using **numerical methods** within the fragment shader.
 
-This entire process is repeated for every single pixel on the screen, for every frame, resulting in the final, fully rendered image.
+### 1. Gravitational Model
+We use a single, unified function to calculate the acceleration of a light ray, which adapts based on whether the black hole is rotating.
 
-## Core Principles & Mathematical Formulas
+#### a) Schwarzschild Gravity (Post-Newtonian Approximation)
 
-This simulation is not based on traditional 3D rendering but on the physical phenomena described by **General Relativity**, which are approximated using **numerical methods** within the fragment shader. Below are the key mathematical and physical principles at play.
-
-### 1. Approximation of Light Deflection
-
-In General Relativity, light travels along "geodesics" through spacetime. For a Schwarzschild black hole, this path is curved. Calculating this path precisely requires solving complex geodesic equations. To achieve real-time performance on a GPU, this project uses a highly effective and visually plausible **approximation formula** that simulates the change in a light ray's direction due to gravity.
-
-At each step of the ray marching process, we update the ray's velocity (direction) using the following formula:
+For a static black hole, the acceleration includes the standard Newtonian gravity plus a first-order relativistic correction term, which is crucial for correctly simulating light bending.
 
 $$
-\Delta \vec{v} = - \frac{3}{2} R_s \frac{\vec{p}}{|\vec{p}|^4} \Delta t
+\vec{a}_{\text{Schwarzschild}} = - \frac{M}{|\vec{p}|^3}\vec{p} \left( 1 + \frac{3|\vec{L}|^2}{|\vec{p}|^2} \right)
 $$
 
 Where:
-
--   $\Delta \vec{v}$ is the change in the light ray's velocity (direction vector) over a small time step $\Delta t$.
--   $R_s$ is the Schwarzschild Radius, defining the size of the event horizon.
--   $\vec{p}$ is the photon's current position vector relative to the black hole's center.
--   $|\vec{p}|$ is the distance from the photon to the center of the black hole.
-
-This formula is implemented in the GLSL shader as follows:
+-   $M$ is the mass of the black hole.
+-   $\vec{p}$ is the photon's position vector.
+-   $\vec{L} = \vec{p} \times \vec{v}$ is the photon's specific angular momentum.
 
 ```glsl
-// 'ro' is the ray position vector p, 'Rs' is the Schwarzschild Radius.
-// dot(ro, ro) calculates the squared distance |p|^2 for efficiency.
-vec3 dr = -1.5 * Rs * ro / dot(ro, ro) / dot(ro, ro);
-rd += dr * dt; // 'rd' is the ray direction vector v
+vec3 acc_schwarzschild = -M * pos / pow(r, 3.0) * (1.0 + 3.0 * dot(cross(pos, vel), cross(pos, vel)) / (r2));
 ```
 
-This gravitational relationship, proportional to $1/|\vec{p}|^3$ (since $\Delta \vec{v} \propto \vec{p}/|\vec{p}|^4$), is a modification of Newtonian gravity ($1/|\vec{p}|^2$) and effectively models the behavior of photons in a strong gravitational field, including the formation of a photon sphere.
+#### b) Frame-Dragging (Gravitomagnetism)
 
-### 2. Numerical Integration: The Euler Method
-
-We use the simplest numerical integration technique—the **Euler Method**—to update the ray's position step-by-step based on the change in velocity calculated above:
+For a rotating Kerr black hole, we add an additional acceleration term that models the Lense-Thirring (frame-dragging) effect. This term acts like a "gravitational Lorentz force," creating the spacetime vortex.
 
 $$
-\vec{v}_{i+1} = \vec{v}_i + \Delta \vec{v}
-$$
-$$
-\vec{p}_{i+1} = \vec{p}_i + \vec{v}_{i+1} \cdot \Delta t
-$$
-
-This is precisely what occurs inside the `for` loop. By iterating hundreds of times, we construct a smooth, curved path for the light ray.
-
-### 3. Doppler Effect & Relativistic Beaming in the Accretion Disk
-
-The variation in the color and brightness of the accretion disk is caused by a combination of the **Doppler Effect** and **Relativistic Beaming**.
-
-- **Doppler Effect**: When matter moves towards us, the frequency of the light we receive increases (blueshift), making it appear brighter. When it moves away, the frequency decreases (redshift), making it appear dimmer.
-- **Relativistic Beaming**: At near-light speeds, light emitted by an object becomes highly concentrated in its direction of motion. This makes the matter moving towards us appear significantly brighter.
-
-A simplified formula is used in the shader to model this combined effect, calculating a `doppler` factor to adjust the color's brightness:
-
-$$
-\text{dopplerFactor} = \frac{1}{1 + v_{disk} \cdot v_{orbit} \cdot \vec{v}_{ray} \cdot \hat{x}}
+\vec{a}_{\text{drag}} \approx - \frac{6M}{|\vec{p}|^3} (\vec{v} \times \vec{J})
 $$
 
 Where:
+-   $\vec{J}$ is the angular momentum vector of the black hole (pointing along its spin axis).
+-   $\vec{v}$ is the velocity of the photon.
+-   The cross product `(v x J)` ensures the force is perpendicular to both the photon's motion and the spin axis, creating the characteristic swirl.
 
--   $v_{\text{orbit}}$ is the orbital velocity of the disk at a given point.
--   $\vec{v}_{\text{ray}} \cdot \hat{x}$ is the projection of the final ray direction onto the disk's direction of motion (simplified here as the x-axis).
+```glsl
 
-This factor is multiplied by the color sampled from the accretion disk texture, creating the visual effect where the side moving towards us is brighter (blueshifted) and the side moving away is dimmer (redshifted).
+if (u_kerr_enabled) {
+    vec3 J = vec3(0, a * M, 0); 
+    float r3 = r2 * r;
+    vec3 acc_drag = -(6.0 * M / r3) * cross(vel, J);
+    
+    return acc_schwarzschild + acc_drag;
+}
+```
 
-### 4. Accretion Disk Texture Mapping
+### 2. Numerical Integration: 4th Order Runge-Kutta (RK4)
 
-To map the 3D collision point of the light ray onto the 2D accretion disk texture, we use a **Cartesian to Polar coordinate conversion**.
+To ensure stability and accuracy, especially in the extreme gravity near the event horizon, we use the **RK4 method** to integrate the ray's path. Unlike the simpler Euler method, RK4 takes four samples of the acceleration within each time step to calculate a weighted average, dramatically reducing error and preventing visual artifacts.
 
 $$
-r = \sqrt{p_x^2 + p_z^2}
+\begin{aligned}
+\vec{k}_{v1} &= \Delta t \cdot \vec{a}(\vec{p}_i, \vec{v}_i) \\
+\vec{k}_{p1} &= \Delta t \cdot \vec{v}_i \\
+\vec{k}_{v2} &= \Delta t \cdot \vec{a}(\vec{p}_i + \frac{\vec{k}_{p1}}{2}, \vec{v}_i + \frac{\vec{k}_{v1}}{2}) \\
+\vec{k}_{p2} &= \Delta t \cdot (\vec{v}_i + \frac{\vec{k}_{v1}}{2}) \\
+\vec{k}_{v3} &= \Delta t \cdot \vec{a}(\vec{p}_i + \frac{\vec{k}_{p2}}{2}, \vec{v}_i + \frac{\vec{k}_{v2}}{2}) \\
+\vec{k}_{p3} &= \Delta t \cdot (\vec{v}_i + \frac{\vec{k}_{v2}}{2}) \\
+\vec{k}_{v4} &= \Delta t \cdot \vec{a}(\vec{p}_i + \vec{k}_{p3}, \vec{v}_i + \vec{k}_{v3}) \\
+\vec{k}_{p4} &= \Delta t \cdot (\vec{v}_i + \vec{k}_{v3}) \\
+\vec{p}_{i+1} &= \vec{p}_i + \frac{1}{6}(\vec{k}_{p1} + 2\vec{k}_{p2} + 2\vec{k}_{p3} + \vec{k}_{p4}) \\
+\vec{v}_{i+1} &= \vec{v}_i + \frac{1}{6}(\vec{k}_{v1} + 2\vec{k}_{v2} + 2\vec{k}_{v3} + \vec{k}_{v4})
+\end{aligned}
 $$
+
+```glsl
+vec3 k1_vel = DT * get_acceleration(ray_pos, velocity);
+vec3 k1_pos = DT * velocity;
+
+vec3 k2_vel = DT * get_acceleration(ray_pos + k1_pos * 0.5, velocity + k1_vel * 0.5);
+vec3 k2_pos = DT * (velocity + k1_vel * 0.5);
+
+vec3 k3_vel = DT * get_acceleration(ray_pos + k2_pos * 0.5, velocity + k2_vel * 0.5);
+vec3 k3_pos = DT * (velocity + k2_vel * 0.5);
+
+vec3 k4_vel = DT * get_acceleration(ray_pos + k3_pos, velocity + k3_vel);
+vec3 k4_pos = DT * (velocity + k3_vel);
+
+ray_pos += (k1_pos + 2.0 * k2_pos + 2.0 * k3_pos + k4_pos) / 6.0;
+velocity += (k1_vel + 2.0 * k2_vel + 2.0 * k3_vel + k4_vel) / 6.0;
+```
+
+### 3. Kerr Accretion Disk Physics 
+
+The extreme brightness of the Kerr disk's approaching side is due to the physically accurate orbital velocity of the gas. For a particle in a prograde (co-rotating) orbit in the equatorial plane of a Kerr black hole, the angular velocity is:
+
 $$
-\theta = \text{atan2}(p_x, p_z)
+\Omega = \frac{\sqrt{M}}{r^{3/2} + a\sqrt{M}}
 $$
 
-The resulting radius `r` and angle `θ` are then used as the `(u, v)` coordinates to sample the correct color from the disk texture.
+Where:
+-   $r$ is the orbital radius.
+-   $a$ is the black hole's spin parameter.
 
-### A Note on the Physics Approximation
+This formula shows that as spin `a` increases, the orbital velocity `v = Ωr` becomes much higher than in the Schwarzschild case (`a=0`), leading to a far more dramatic Doppler effect.
 
-It is worth noting that the formula used in this project, which results in an effective force proportional to $1/r^3$, is one of several ways to approximate the geodesic equation for photons.
+```glsl
+float omega = sqrt(M) / (pow(r_cyl, 1.5) + a * sqrt(M));
+float v_mag = omega * r_cyl;
+```
+--
+## Acknowledgments 
 
-Another excellent and insightful approach is detailed in the project **[Starless](https://rantonels.github.io/starless/)** by Randel S. Nelson. That simulation cleverly constructs a different pseudo-Newtonian force, proportional to $1/r^5$, which is specifically designed to produce the correct relativistic orbits when integrated.
+This project's journey began with the inspiration from the incredible work of **@rossning92**. The initial idea to use screen-space ray marching and the foundational shader structure were adapted from his excellent C++ project:
 
-Both methods are powerful approximations that achieve a visually accurate simulation of gravitational lensing, demonstrating that different mathematical paths can lead to the same physical phenomenon.
+-   **Inspirational Project**: [rossning92/Blackhole](https://github.com/rossning92/Blackhole)
 
----
+However, through a long and intensive process of debugging, research, and iteration, this project has evolved significantly from its original starting point. The core physics models for both Schwarzschild and Kerr black holes, the 4th-order Runge-Kutta numerical integrator, and the stable, gimbal-lock-free camera system are **entirely new implementations** developed during the course of this project to achieve a higher degree of physical accuracy and numerical stability.
 
-## Implementations
+We remain grateful to the original project for providing the foundational spark for this deep dive into computational astrophysics.
 
-This repository contains two separate implementations of the same shader logic.
+--
+## References and Further Reading 
 
-### 1. Python / PyOpenGL Version
+### Project Inspiration 
 
--   **Location**: Root directory (`/`)
--   **Description**: A desktop application that uses `PyOpenGL` for OpenGL bindings, `pygame` for window and event handling, and `numpy` for numerical operations.
--   **Dependencies**: `PyOpenGL`, `pygame`, `numpy`
+-   **rossning92/Blackhole**
+    -   `https://github.com/rossning92/Blackhole`
 
-### 2. JavaScript / WebGL Version
+### Key Physical and Computational Concepts 
 
--   **Location**: `web/` directory
--   **Description**: A client-side web version that runs in any modern browser supporting WebGL. It uses minimal JavaScript to set up the canvas and run the GLSL shader.
--   **Dependencies**: A modern web browser.
+-   **Image of a Spherical Black Hole with a Thin Accretion Disk (J.P. Luminet, 1979)**
+    -   `https://ui.adsabs.harvard.edu/abs/1979A&A....75..228L/abstract`
 
-## Acknowledgments
+-   **The Lense-Thirring / Frame-Dragging Effect (NASA Overview)**
+    -   `https://science.nasa.gov/science-news/science-at-nasa/2004/26apr_frame`
 
-This project is a learning exercise and a tribute to the incredible work of **@rossning92**.
+-   **Post-Newtonian Formalism (Wikipedia)**
+    -   `https://en.wikipedia.org/wiki/Post-Newtonian_formalism`
 
--   **Original Project**: [rossning92/Blackhole](https://github.com/rossning92/Blackhole)
--   The core GLSL shader logic, the ray marching algorithm, the physics formulas for gravitational lensing, and the overall rendering strategy are directly based on his excellent C++ implementation. My main contribution is the successful porting and adaptation of this logic into Python/PyOpenGL and JavaScript/WebGL environments.
+-   **Runge–Kutta Methods (Wikipedia)**
+    -   `https://en.wikipedia.org/wiki/Runge–Kutta_methods`
+
+### Developmental Reference 
+
+-   **Geodesics in the Kerr Spacetime (T. Gantumur, McGill University)**
+    -   `https://math.mcgill.ca/gantumur/math599w17/project-kerr.pdf`
 
 ---
 
 ## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
-
-
-
-
-
-
-
-
-
-
-
-
-
+```
