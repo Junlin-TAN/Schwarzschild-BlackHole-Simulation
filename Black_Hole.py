@@ -5,17 +5,16 @@ import math
 from PIL import Image
 import os
 
-
 WINDOW_SIZE = (1280, 720)
-
 
 BLACK_HOLE_MASS = 0.9
 BLACK_HOLE_SPIN = 0.9999
-
 Rs = 2.0 * BLACK_HOLE_MASS
 
-DISK_INNER_RADIUS = 3 * Rs
-DISK_OUTER_RADIUS = 12 * Rs
+SCHWARZSCHILD_DISK_INNER_RADIUS = 6.0 * BLACK_HOLE_MASS
+KERR_DISK_INNER_RADIUS = 6 * BLACK_HOLE_MASS
+
+DISK_OUTER_RADIUS = 12.0 * Rs
 DISK_THICKNESS = 0.3
 
 class BlackHole3D:
@@ -62,7 +61,6 @@ class BlackHole3D:
                 img = Image.open(img_path).convert("RGBA")
                 image_data_list.append(img.tobytes())
                 
-
             final_image_data = b''.join(image_data_list)
             self.skybox_texture = self.ctx.texture_cube(size, 4, final_image_data)
 
@@ -81,7 +79,6 @@ class BlackHole3D:
 
         self.program['u_resolution'].value = (self.width, self.height)
         self.program['M'].value = BLACK_HOLE_MASS
-        self.program['DISK_INNER_RADIUS'].value = DISK_INNER_RADIUS
         self.program['DISK_OUTER_RADIUS'].value = DISK_OUTER_RADIUS
         self.program['DISK_THICKNESS'].value = DISK_THICKNESS
 
@@ -122,10 +119,9 @@ class BlackHole3D:
 
             #define Rs (2.0 * M)
             const float PI = 3.1415926535;
-            const int MAX_STEPS = 1000; 
-            const float BASE_DT = 0.06; 
+            const int MAX_STEPS = 1000;
+            const float BASE_DT = 0.06;
 
-            
             vec3 get_sky_color(vec3 dir) {
                 float angle = u_skybox_rotation;
                 mat2 rot = mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
@@ -175,9 +171,17 @@ class BlackHole3D:
                 vec3 disk_velocity = v_mag * v_dir;
 
                 float r = length(pos);
-                float g_tt = -(1.0 - Rs * r / (r*r + a*a*pos.z*pos.z/(r*r)));
-                float g_tphi = -Rs * a * (pos.x*pos.x + pos.y*pos.y) / (r*r * (r*r + a*a*pos.z*pos.z/(r*r)));
-                float g_phiphi = (r*r + a*a + Rs*a*a*(pos.x*pos.x + pos.y*pos.y)/(r*r * (r*r + a*a*pos.z*pos.z/(r*r))));
+                float r2 = r*r;
+                
+                float cos2_theta = pos.y * pos.y / r2;
+                float r2_sin2_theta = pos.x * pos.x + pos.z * pos.z;
+                float rho2 = r2 + a * a * cos2_theta;
+
+                float g_tt = -(1.0 - Rs * r / rho2);
+                float g_tphi = -Rs * a * r * r2_sin2_theta / (rho2 * r2);
+                float g_phiphi_term = Rs * a * a * r * r2_sin2_theta / (rho2 * r2);
+                float g_phiphi = (r2 + a*a + g_phiphi_term) * r2_sin2_theta / r2;
+                
                 float grav_redshift = sqrt(-g_tt - 2.0*omega*g_tphi - omega*omega*g_phiphi);
                 
                 float doppler_dot = dot(disk_velocity, ray_dir);
@@ -235,13 +239,11 @@ class BlackHole3D:
 
                     if (r < horizon_radius * 1.01) { hit_horizon = true; break; }
                     
-                   
-                    float current_dt = BASE_DT;
+                    float DT = BASE_DT;
                     if (r > 1.0) {
-                        current_dt = min(BASE_DT, r * r * 0.005); 
+                        DT = min(BASE_DT, r * r * 0.005); 
                     }
-                    
-                    
+
                     if (u_accretion_disk_enabled) { 
                         float r_disk = length(ray_pos.xz);
                         if (abs(ray_pos.y) < DISK_THICKNESS && r_disk >= DISK_INNER_RADIUS && r_disk < DISK_OUTER_RADIUS) {
@@ -350,6 +352,11 @@ class BlackHole3D:
                 self.program['u_kerr_enabled'].value = self.kerr_enabled
                 spin_a = BLACK_HOLE_SPIN * BLACK_HOLE_MASS if self.kerr_enabled else 0.0
                 self.program['a'].value = spin_a
+
+                if self.kerr_enabled:
+                    self.program['DISK_INNER_RADIUS'].value = KERR_DISK_INNER_RADIUS
+                else:
+                    self.program['DISK_INNER_RADIUS'].value = SCHWARZSCHILD_DISK_INNER_RADIUS
 
                 self.ctx.clear(0.0, 0.0, 0.0)
                 self.vao.render(moderngl.TRIANGLE_STRIP)
