@@ -9,7 +9,7 @@ The core rendering logic and shader framework were initially inspired by the exc
 
 A key goal of this project is to make this complex simulation more accessible and significantly easier to run. The Python version is platform-independent and requires no compilation, effectively lowering the barrier for anyone wishing to experience or experiment with these fascinating cosmic objects.
 
---
+---
 ### The Final Result Overview
 ![Kerr Black Hole Demo](gif/blackhole_recording1.gif)
 ![Kerr Black Hole Demo](gif/blackhole_recording2.gif)
@@ -197,6 +197,7 @@ We remain grateful to the original project for providing the foundational spark 
 
 Distributed under the MIT License. See `LICENSE` for more information.
 ```
+
 
 
 
