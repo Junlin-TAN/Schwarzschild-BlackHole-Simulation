@@ -20,7 +20,7 @@ The view from north pole:
 - **Event Horizon**: The "point of no return," rendered as a perfect black sphere where no light can escape.
 - **Photon Sphere**: At 1.5 times the Schwarzschild radius, light can orbit the black hole. This contributes to the complex visual effects near the event horizon.
 - **Real-time and Interactive**: The simulation runs in real-time, allowing for future extensions like camera movement.
-
+- **Interation**: You can press SPACE to turn on/off the accretion disk.
 ## How It Works: The Rendering Pipeline
 
 This simulation doesn't use traditional 3D models. Instead, it employs a **screen-space ray marching** technique executed entirely on the GPU via a fragment shader. Here's a breakdown of the process for each pixel on the screen:
@@ -162,6 +162,7 @@ This project is a learning exercise and a tribute to the incredible work of **@r
 ## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
+
 
 
 
