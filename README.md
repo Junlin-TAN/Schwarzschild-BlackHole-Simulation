@@ -1,7 +1,7 @@
 
 # Interactive Black Hole Simulation: Schwarzschild & Kerr Black Hole
 
-![Kerr Black Hole Demo](gif/blackhole_recording0)
+![Kerr Black Hole Demo](gif\blackhole_recording0)
 
 This project provides a real-time, interactive simulation of both a static **Schwarzschild black hole** and a rotating **Kerr black hole**. It demonstrates key phenomena predicted by General Relativity, such as gravitational lensing, the accretion disk, the relativistic Doppler effect, and the incredible **frame-dragging** effect of a spinning black hole.
 
@@ -10,14 +10,14 @@ The core rendering logic and shader framework were initially inspired by the exc
 A key goal of this project is to make this complex simulation more accessible and significantly easier to run. The Python version is platform-independent and requires no compilation, effectively lowering the barrier for anyone wishing to experience or experiment with these fascinating cosmic objects.
 
 ### Kerr Black Hole (Rotating) - The Final Result!
-![Kerr Black Hole Demo](gif/blackhole_recording1)
-![Kerr Black Hole Demo](gif/blackhole_recording2)
-![Kerr Black Hole Demo](gif/blackhole_recording3)
-![Kerr Black Hole Demo](gif/blackhole_recording4)
-![Kerr Black Hole Demo](gif/blackhole_recording5)
-![Kerr Black Hole Demo](gif/blackhole_recording6)
-![Kerr Black Hole Demo](gif/blackhole_recording7)
-![Kerr Black Hole Demo](gif/blackhole_recording8)
+![Kerr Black Hole Demo](gif\blackhole_recording1)
+![Kerr Black Hole Demo](gif\blackhole_recording2)
+![Kerr Black Hole Demo](gif\blackhole_recording3)
+![Kerr Black Hole Demo](gif\blackhole_recording4)
+![Kerr Black Hole Demo](gif\blackhole_recording5)
+![Kerr Black Hole Demo](gif\blackhole_recording6)
+![Kerr Black Hole Demo](gif\blackhole_recording7)
+![Kerr Black Hole Demo](gif\blackhole_recording8)
 
 ## Key Features
 
@@ -196,3 +196,4 @@ We remain grateful to the original project for providing the foundational spark 
 
 Distributed under the MIT License. See `LICENSE` for more information.
 ```
+
