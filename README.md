@@ -10,33 +10,29 @@ The core rendering logic and shader framework were initially inspired by the exc
 A key goal of this project is to make this complex simulation more accessible and significantly easier to run. The Python version is platform-independent and requires no compilation, effectively lowering the barrier for anyone wishing to experience or experiment with these fascinating cosmic objects.
 
 ---
-### The Final Result Overview
-![Kerr Black Hole Demo](gif/blackhole_recording1.gif)
-![Kerr Black Hole Demo](gif/blackhole_recording2.gif)
-![Kerr Black Hole Demo](gif/blackhole_recording3.gif)
-![Kerr Black Hole Demo](gif/blackhole_recording4.gif)
-![Kerr Black Hole Demo](gif/blackhole_recording5.gif)
-![Kerr Black Hole Demo](gif/blackhole_recording6.gif)
-![Kerr Black Hole Demo](gif/blackhole_recording7.gif)
-![Kerr Black Hole Demo](gif/blackhole_recording8.gif)
-
 ## Key Features
 
 -   **Dual Physics Cores**: Seamlessly switch between a **Schwarzschild (static)** and a **Kerr (rotating)** black hole simulation with the press of a button.
 -   **Frame-Dragging (Lense-Thirring Effect)**: Witness the mind-bending "spacetime vortex" around the Kerr black hole, which drags and twists the accretion disk and background starlight from any viewing angle.
 -   **Extreme Relativistic Beaming**: The side of the accretion disk moving towards the observer becomes intensely bright, while the side moving away fades into darkness, accurately modeled using the orbital velocities of a Kerr spacetime.
 -   **Gravitational Lensing**: Simulates the bending of light paths, causing the background starfield to appear distorted and creating multiple images of the accretion disk (e.g., the "light arch" over the top).
+    ![Kerr Black Hole Demo](gif/blackhole_recording5.gif)
 -   **Deformed Event Horizon Shadow**: Observe how the black hole's shadow deforms from a perfect circle (Schwarzschild) to a "D" shape (Kerr) due to frame-dragging.
+    ![Kerr Black Hole Demo](gif/blackhole_recording6.gif)
+    ![Kerr Black Hole Demo](gif/blackhole_recording7.gif)
 -   **Physically-Accurate Accretion Disk**: The disk's inner radius and orbital velocities are correctly modeled based on the black hole's spin, respecting the **Innermost Stable Circular Orbit (ISCO)**.
+    ![Kerr Black Hole Demo](gif/blackhole_recording3.gif)
 -   **Real-time and Interactive**: The simulation is fully interactive, allowing you to move the camera, and toggle visual components on the fly.
 
 ## Interaction Guide 
 
 -   **Mouse**: Click and drag to rotate the camera around the black hole.
+    ![Kerr Black Hole Demo](gif/blackhole_recording1.gif)
 -   **Mouse Wheel**: Zoom in and out.
 -   **`SPACE` Key**: Toggle the accretion disk on/off.
+    ![Kerr Black Hole Demo](gif/blackhole_recording2.gif)
 -   **`S` Key**: Switch between the Schwarzschild (static) and Kerr (rotating) physics models.
--   **`P` Key**: Toggle the manually-drawn photon sphere effect (only for the Schwarzschild model).
+    ![Kerr Black Hole Demo](gif/blackhole_recording4.gif)
 
 ## How It Works: The Rendering Pipeline
 
@@ -196,6 +192,7 @@ We remain grateful to the original project for providing the foundational spark 
 ## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
+
 
 
 
