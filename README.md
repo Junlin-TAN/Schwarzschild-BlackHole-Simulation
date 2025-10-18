@@ -152,13 +152,18 @@ float v_mag = omega * r_cyl;
 --
 ## Acknowledgments 
 
-This project's journey began with the inspiration from the incredible work of **@rossning92**. The initial idea to use screen-space ray marching and the foundational shader structure were adapted from his excellent C++ project:
+This project's journey began with the goal of re-implementing the excellent C++/OpenGL simulation by **@rossning92**:
 
 -   **Inspirational Project**: [rossning92/Blackhole](https://github.com/rossning92/Blackhole)
 
-However, through a long and intensive process of debugging, research, and iteration, this project has evolved significantly from its original starting point. The core physics models for both Schwarzschild and Kerr black holes, the 4th-order Runge-Kutta numerical integrator, and the stable, gimbal-lock-free camera system are **entirely new implementations** developed during the course of this project to achieve a higher degree of physical accuracy and numerical stability.
+However, during the development process, a deeper dive into the physics revealed opportunities for greater accuracy. We identified that the original project's visually-effective but approximate geodesic equation could be improved. This led to the first major evolution of our project:
 
-We remain grateful to the original project for providing the foundational spark for this deep dive into computational astrophysics.
+1.  The original force law was replaced with a more physically robust **Post-Newtonian formula** (`a_schwarzschild`) that more accurately models the behavior of light in a strong gravitational field.
+2.  The simple Euler integrator was upgraded to a **4th-Order Runge-Kutta (RK4) method** to ensure numerical stability and eliminate the visual artifacts that can occur near the event horizon.
+
+Building on this more accurate foundation for a static black hole, the project's scope was then expanded significantly beyond the original inspiration. The second, and most substantial, phase of this project was the **independent development and implementation of a complete, physically-grounded simulation for a rotating Kerr black hole**, including the crucial frame-dragging effect.
+
+Therefore, while we remain deeply grateful to `rossning92/Blackhole` for providing the foundational spark and the initial challenge that set this entire journey in motion, our final simulation stands as a distinct and expanded work.
 
 --
 ## References and Further Reading 
@@ -192,6 +197,7 @@ We remain grateful to the original project for providing the foundational spark 
 ## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
+
 
 
 
