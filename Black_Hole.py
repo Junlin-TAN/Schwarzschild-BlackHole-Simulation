@@ -9,11 +9,13 @@ import os
 WINDOW_SIZE = (1280, 720)
 
 
-BLACK_HOLE_MASS = 0.6
+BLACK_HOLE_MASS = 0.9
+BLACK_HOLE_SPIN = 0.9999
+
 Rs = 2.0 * BLACK_HOLE_MASS
 
 DISK_INNER_RADIUS = 3 * Rs
-DISK_OUTER_RADIUS = 10.0 * Rs
+DISK_OUTER_RADIUS = 12 * Rs
 DISK_THICKNESS = 0.3
 
 class BlackHole3D:
@@ -35,14 +37,15 @@ class BlackHole3D:
             fragment_shader=self.get_fragment_shader()
         )
         
-        self.distance = 10.0
+        self.distance = 20.0
         self.yaw = math.radians(0)
-        self.pitch = math.radians(10)
+        self.pitch = math.radians(90)
         pygame.mouse.set_visible(False)
         pygame.event.set_grab(True)
 
-        
         self.accretion_disk_enabled = True
+        self.photon_sphere_enabled = True
+        self.kerr_enabled = True
 
         try:
             script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -113,20 +116,20 @@ class BlackHole3D:
             uniform float u_time;
             uniform float u_skybox_rotation; 
             uniform bool u_accretion_disk_enabled; 
+            uniform bool u_photon_sphere_enabled;
+            uniform bool u_kerr_enabled;
+            uniform float a;
 
             #define Rs (2.0 * M)
             const float PI = 3.1415926535;
-            const float BOUNDARY = 50.0;
-            const int MAX_STEPS = 450;
-            const float DT = 0.08;
+            const int MAX_STEPS = 1000; 
+            const float BASE_DT = 0.06; 
 
             
             vec3 get_sky_color(vec3 dir) {
                 float angle = u_skybox_rotation;
-                
                 mat2 rot = mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
                 vec3 rotated_dir = dir;
-                
                 rotated_dir.xz = rot * rotated_dir.xz;
                 return texture(u_skybox, vec3(rotated_dir.x, rotated_dir.y, -rotated_dir.z)).rgb;
             }
@@ -148,14 +151,14 @@ class BlackHole3D:
             }
 
             vec3 get_disk_color(vec3 pos, vec3 ray_dir) {
-                float r = length(pos.xz);
-                if (r < DISK_INNER_RADIUS || r > DISK_OUTER_RADIUS) return vec3(0.0);
+                float r_cyl = length(pos.xz);
+                if (r_cyl < DISK_INNER_RADIUS || r_cyl > DISK_OUTER_RADIUS) return vec3(0.0);
                 float vertical_falloff = 1.0 - smoothstep(0.0, DISK_THICKNESS, abs(pos.y));
                 if (vertical_falloff <= 0.0) return vec3(0.0);
                 
                 float phi = atan(pos.z, pos.x);
-                float animated_phi = phi + u_time * 0.2 / (r * 0.5);
-                vec2 base_coord = vec2(cos(animated_phi), sin(animated_phi)) * r * 0.3;
+                float animated_phi = phi + u_time * 0.2 / (r_cyl * 0.5);
+                vec2 base_coord = vec2(cos(animated_phi), sin(animated_phi)) * r_cyl * 0.3;
                 
                 vec2 warp_coord1 = base_coord + vec2(u_time * 0.1, 0.0);
                 vec2 warp_coord2 = base_coord + vec2(0.0, u_time * 0.08);
@@ -163,31 +166,47 @@ class BlackHole3D:
                 float noise_val = fbm(base_coord + warp_offset * 0.5);
                 
                 noise_val = pow(noise_val, 2.5);
-                float temp = 1.0 - smoothstep(DISK_INNER_RADIUS, DISK_OUTER_RADIUS, r);
+                float temp = 1.0 - smoothstep(DISK_INNER_RADIUS, DISK_OUTER_RADIUS, r_cyl);
                 temp = pow(temp, 2.0);
 
-                float v_mag = 0.35 * pow(r, -0.5);
+                float omega = sqrt(M) / (pow(r_cyl, 1.5) + a * sqrt(M));
+                float v_mag = omega * r_cyl;
                 vec3 v_dir = normalize(vec3(-pos.z, 0.0, pos.x));
                 vec3 disk_velocity = v_mag * v_dir;
-                float grav_redshift = sqrt(1.0 - 1.5 * Rs / r);
+
+                float r = length(pos);
+                float g_tt = -(1.0 - Rs * r / (r*r + a*a*pos.z*pos.z/(r*r)));
+                float g_tphi = -Rs * a * (pos.x*pos.x + pos.y*pos.y) / (r*r * (r*r + a*a*pos.z*pos.z/(r*r)));
+                float g_phiphi = (r*r + a*a + Rs*a*a*(pos.x*pos.x + pos.y*pos.y)/(r*r * (r*r + a*a*pos.z*pos.z/(r*r))));
+                float grav_redshift = sqrt(-g_tt - 2.0*omega*g_tphi - omega*omega*g_phiphi);
+                
                 float doppler_dot = dot(disk_velocity, ray_dir);
                 float doppler_factor = sqrt(1.0 - v_mag*v_mag) / (1.0 - doppler_dot);
 
-                
                 vec3 color_bright = vec3(temp * 1.0, temp * 1.0, temp * 25.0);
                 vec3 color_dark = vec3(temp * 1.0, temp * 1.0, temp * 20.0);
-
                 float mix_factor = smoothstep(0.4, 1.6, doppler_factor);
-
                 vec3 base_color = mix(color_dark, color_bright, mix_factor) * noise_val;
 
                 float brightness = pow(doppler_factor, 10.0);
                 return base_color * brightness * grav_redshift * vertical_falloff;
             }
 
-            vec3 get_acceleration(vec3 pos) { 
-                float r = length(pos); 
-                return -1.5 * Rs * pos / (r * r * r * r); 
+            vec3 get_acceleration(vec3 pos, vec3 vel) {
+                float r2 = dot(pos, pos);
+                if (r2 < 1e-4) return vec3(0.0);
+                float r = sqrt(r2);
+
+                vec3 acc_schwarzschild = -M * pos / pow(r, 3.0) * (1.0 + 3.0 * dot(cross(pos, vel), cross(pos, vel)) / (r2));
+
+                if (u_kerr_enabled) {
+                    vec3 J = vec3(0, a * M, 0);
+                    float r3 = r2 * r;
+                    vec3 acc_drag = -(6.0 * M / r3) * cross(vel, J);
+                    return acc_schwarzschild + acc_drag;
+                }
+
+                return acc_schwarzschild;
             }
 
             vec3 tonemap_aces(vec3 x) {
@@ -206,27 +225,48 @@ class BlackHole3D:
                 bool hit_horizon = false;
                 vec3 accumulated_light = vec3(0.0);
                 float transparency = 1.0;
+                float min_r = 1000.0;
+
+                float horizon_radius = u_kerr_enabled ? M + sqrt(M*M - a*a) : Rs;
 
                 for (int i = 0; i < MAX_STEPS; ++i) {
                     float r = length(ray_pos);
-                    if (r < Rs) { hit_horizon = true; break; }
-                    if (r > BOUNDARY) { break; }
+                    min_r = min(min_r, r);
 
+                    if (r < horizon_radius * 1.01) { hit_horizon = true; break; }
+                    
+                   
+                    float current_dt = BASE_DT;
+                    if (r > 1.0) {
+                        current_dt = min(BASE_DT, r * r * 0.005); 
+                    }
+                    
+                    
                     if (u_accretion_disk_enabled) { 
                         float r_disk = length(ray_pos.xz);
                         if (abs(ray_pos.y) < DISK_THICKNESS && r_disk >= DISK_INNER_RADIUS && r_disk < DISK_OUTER_RADIUS) {
                             vec3 step_color = get_disk_color(ray_pos, normalize(velocity)) * DT * 10.0;
                             accumulated_light += step_color * transparency;
-                            
                             float opacity = clamp(dot(step_color, vec3(0.333)) * 0.1, 0.0, 1.0);
                             transparency *= (1.0 - opacity);
-
                             if (transparency < 0.01) { break; }
                         }
                     }
                     
-                    velocity += DT * get_acceleration(ray_pos);
-                    ray_pos += DT * velocity;
+                    vec3 k1_vel = DT * get_acceleration(ray_pos, velocity);
+                    vec3 k1_pos = DT * velocity;
+
+                    vec3 k2_vel = DT * get_acceleration(ray_pos + k1_pos * 0.5, velocity + k1_vel * 0.5);
+                    vec3 k2_pos = DT * (velocity + k1_vel * 0.5);
+
+                    vec3 k3_vel = DT * get_acceleration(ray_pos + k2_pos * 0.5, velocity + k2_vel * 0.5);
+                    vec3 k3_pos = DT * (velocity + k2_vel * 0.5);
+
+                    vec3 k4_vel = DT * get_acceleration(ray_pos + k3_pos, velocity + k3_vel);
+                    vec3 k4_pos = DT * (velocity + k3_vel);
+
+                    ray_pos += (k1_pos + 2.0 * k2_pos + 2.0 * k3_pos + k4_pos) / 6.0;
+                    velocity += (k1_vel + 2.0 * k2_vel + 2.0 * k3_vel + k4_vel) / 6.0;
                 }
 
                 vec3 background_srgb = vec3(0.0);
@@ -237,69 +277,88 @@ class BlackHole3D:
                 vec3 background_linear = pow(background_srgb, vec3(2.2));
                 vec3 tonemapped_disk_linear = tonemap_aces(accumulated_light);
                 vec3 final_linear = mix(background_linear, tonemapped_disk_linear, 1.0 - transparency);
+
+                if (!u_kerr_enabled && u_photon_sphere_enabled) {
+                    float ring_width = 0.05;
+                    float ring_start = Rs + 0.02;
+                    float ring_end = ring_start + ring_width;
+                    float intensity_up = smoothstep(ring_start, ring_end, min_r);
+                    float intensity_down = 1.0 - smoothstep(ring_end, ring_end + ring_width, min_r);
+                    float ring_intensity = intensity_up * intensity_down;
+                    vec3 ring_color = vec3(1.0, 0.8, 0.4) * 2.0;
+                    final_linear += ring_color * ring_intensity * transparency;
+                }
+
                 vec3 final_color = pow(final_linear, vec3(1.0/2.2));
-                
                 fragColor = vec4(final_color, 1.0);
             }
         """
 
     def run(self):
-        running = True
-        while running:
-            mouse_dx, mouse_dy = pygame.mouse.get_rel()
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
-                    running = False
-                if event.type == pygame.MOUSEWHEEL:
-                    self.distance -= event.y * 0.5
-                    self.distance = max(2.0 * BLACK_HOLE_MASS * 2.5, min(self.distance, 50.0))
+            running = True
+            while running:
+                mouse_dx, mouse_dy = pygame.mouse.get_rel()
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+                        running = False
+                    if event.type == pygame.MOUSEWHEEL:
+                        self.distance -= event.y * 0.5
+                        self.distance = max(2.0 * BLACK_HOLE_MASS * 2.5, min(self.distance, 50.0))
+                    
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_SPACE:
+                            self.accretion_disk_enabled = not self.accretion_disk_enabled
+                        if event.key == pygame.K_p:
+                            self.photon_sphere_enabled = not self.photon_sphere_enabled
+                        if event.key == pygame.K_s:
+                            self.kerr_enabled = not self.kerr_enabled
+                            mode = "Kerr (Rotating)" if self.kerr_enabled else "Schwarzschild (Static)"
+                            print(f"Switched to {mode} black hole model.")
+
+                if pygame.mouse.get_pressed()[0]:
+                    self.yaw += mouse_dx * 0.005
+                    self.pitch -= mouse_dy * 0.005
+                    self.pitch = max(-math.pi/2 + 0.01, min(self.pitch, math.pi/2 - 0.01))
                 
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_SPACE:
-                        self.accretion_disk_enabled = not self.accretion_disk_enabled
+                cam_x = self.distance * math.cos(self.pitch) * math.sin(self.yaw)
+                cam_y = self.distance * math.sin(self.pitch)
+                cam_z = self.distance * math.cos(self.pitch) * math.cos(self.yaw)
+                camera_pos = np.array([cam_x, cam_y, cam_z], dtype='f4')
+                
+                cam_fwd_x = -math.sin(self.yaw) * math.cos(self.pitch)
+                cam_fwd_y = -math.sin(self.pitch)
+                cam_fwd_z = -math.cos(self.yaw) * math.cos(self.pitch)
+                cam_fwd = np.array([cam_fwd_x, cam_fwd_y, cam_fwd_z], dtype='f4')
 
-            if pygame.mouse.get_pressed()[0]:
-                self.yaw += mouse_dx * 0.005
-                self.pitch -= mouse_dy * 0.005
-                self.pitch = max(-math.pi/2 + 0.01, min(self.pitch, math.pi/2 - 0.01))
-            
-            cam_x = self.distance * math.cos(self.pitch) * math.sin(self.yaw)
-            cam_y = self.distance * math.sin(self.pitch)
-            cam_z = self.distance * math.cos(self.pitch) * math.cos(self.yaw)
-            
-            camera_pos = np.array([cam_x, cam_y, cam_z], dtype='f4')
-            
-            target = np.array([0.0, 0.0, 0.0], dtype='f4')
-            cam_fwd = target - camera_pos
-            cam_fwd /= np.linalg.norm(cam_fwd)
-            
-            global_up = np.array([0.0, 1.0, 0.0], dtype='f4')
-            cam_right = np.cross(cam_fwd, global_up)
-            cam_right /= np.linalg.norm(cam_right)
-            
-            cam_up = np.cross(cam_right, cam_fwd)
-            
-            time_sec = pygame.time.get_ticks() / 1000.0
-            self.program['u_time'].value = time_sec
-            
-            self.program['u_skybox_rotation'].value = time_sec / 20.0
-            
-            self.program['u_camera_pos'].value = tuple(camera_pos)
-            self.program['u_camera_fwd'].value = tuple(cam_fwd)
-            self.program['u_camera_right'].value = tuple(cam_right)
-            self.program['u_camera_up'].value = tuple(cam_up)
-            
-           
-            self.program['u_accretion_disk_enabled'].value = self.accretion_disk_enabled
+                cam_right = np.array([math.cos(self.yaw), 0, -math.sin(self.yaw)], dtype='f4')
+                
+                cam_up = np.cross(cam_right, cam_fwd)
+                
+                time_sec = pygame.time.get_ticks() / 1000.0
+                self.program['u_time'].value = time_sec
+                
+                self.program['u_skybox_rotation'].value = time_sec / 20.0
+                
+                self.program['u_camera_pos'].value = tuple(camera_pos)
+                self.program['u_camera_fwd'].value = tuple(cam_fwd)
+                self.program['u_camera_right'].value = tuple(cam_right)
+                self.program['u_camera_up'].value = tuple(cam_up)
+                
+                self.program['u_accretion_disk_enabled'].value = self.accretion_disk_enabled
+                self.program['u_photon_sphere_enabled'].value = self.photon_sphere_enabled
+                
+                self.program['u_kerr_enabled'].value = self.kerr_enabled
+                spin_a = BLACK_HOLE_SPIN * BLACK_HOLE_MASS if self.kerr_enabled else 0.0
+                self.program['a'].value = spin_a
 
-            self.ctx.clear(0.0, 0.0, 0.0)
-            self.vao.render(moderngl.TRIANGLE_STRIP)
-            pygame.display.flip()
-            
-            self.clock.tick(120)
-            pygame.display.set_caption(f"Black Hole Simulation - FPS: {self.clock.get_fps():.2f}")
-            
-        pygame.quit()
+                self.ctx.clear(0.0, 0.0, 0.0)
+                self.vao.render(moderngl.TRIANGLE_STRIP)
+                pygame.display.flip()
+                
+                self.clock.tick(30)
+                pygame.display.set_caption(f"Black Hole Simulation - FPS: {self.clock.get_fps():.2f}")
+                
+            pygame.quit()
 
 if __name__ == '__main__':
     sim = BlackHole3D(WINDOW_SIZE)
