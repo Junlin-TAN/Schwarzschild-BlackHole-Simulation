@@ -20,7 +20,7 @@ A key goal of this project is to make this complex simulation more accessible an
 -   **Deformed Event Horizon Shadow**: Observe how the black hole's shadow deforms from a perfect circle (Schwarzschild) to a "D" shape (Kerr) due to frame-dragging.
     ![Kerr Black Hole Demo](gif/blackhole_recording6.gif)
     ![Kerr Black Hole Demo](gif/blackhole_recording7.gif)
--   **Physically-Accurate Accretion Disk**: The disk's inner radius and orbital velocities are correctly modeled based on the black hole's spin, respecting the **Innermost Stable Circular Orbit (ISCO)**.
+-   **Higher-Order Lensing and the Photon Ring**: Thanks to the simulation's physical accuracy, you can observe one of the most stunning predictions of General Relativity. Light from the accretion disk can be captured by the intense gravity near the photon sphere, loop around the black hole one or more times, and then escape towards the observer. Each loop creates a new, progressively thinner and more distorted image of the entire accretion disk. These nested images stack up right against the edge of the black hole's shadow, forming what is known as the Photon Ring. Look closely at the boundary between the bright disk and the black shadow to see these delicate, nested rings of light..
     ![Kerr Black Hole Demo](gif/blackhole_recording3.gif)
 -   **Real-time and Interactive**: The simulation is fully interactive, allowing you to move the camera, and toggle visual components on the fly.
 
@@ -192,6 +192,7 @@ We remain grateful to the original project for providing the foundational spark 
 ## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
+
 
 
 
