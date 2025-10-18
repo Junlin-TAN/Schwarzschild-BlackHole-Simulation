@@ -1,7 +1,7 @@
 
 # Interactive Black Hole Simulation: Schwarzschild & Kerr Black Hole
 
-![Wormhole Simulation Placeholder](gif/blackhole_recording1)
+![Kerr Black Hole Demo](gif/blackhole_recording0)
 
 This project provides a real-time, interactive simulation of both a static **Schwarzschild black hole** and a rotating **Kerr black hole**. It demonstrates key phenomena predicted by General Relativity, such as gravitational lensing, the accretion disk, the relativistic Doppler effect, and the incredible **frame-dragging** effect of a spinning black hole.
 
@@ -196,5 +196,6 @@ We remain grateful to the original project for providing the foundational spark 
 
 Distributed under the MIT License. See `LICENSE` for more information.
 ```
+
 
 
